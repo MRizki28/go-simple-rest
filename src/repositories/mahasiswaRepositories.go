@@ -73,3 +73,21 @@ func CreateData(c *gin.Context) {
 		"data": mahasiswa,
 	})
 }
+
+func GetDataById(c *gin.Context) {
+	var mahasiswa models.TbMahasiswa
+	id := c.Param("id")
+	config.DB.First(&mahasiswa, id)
+
+	if mahasiswa.Id == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "not Found",
+			"message": "Data not found",
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Success",
+			"data":    mahasiswa,
+		})
+	}
+}
