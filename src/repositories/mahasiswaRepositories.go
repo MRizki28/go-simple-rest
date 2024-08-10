@@ -91,3 +91,67 @@ func GetDataById(c *gin.Context) {
 		})
 	}
 }
+
+func UpdateData(c *gin.Context) {
+	var mahasiswa models.TbMahasiswa
+	id := c.Param("id")
+	config.DB.First(&mahasiswa, id)
+
+	if mahasiswa.Id == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "not Found",
+			"message": "Data not found",
+		})
+		return
+	}else{
+		mahasiswa.Nama = c.PostForm("nama")
+		mahasiswa.Alamat = c.PostForm("alamat")
+
+		if  err := validate.Struct(mahasiswa); err != nil {
+			errors := make(map[string]string)
+			if validationErrors, ok := err.(validator.ValidationErrors); ok {
+				for _, fieldError := range validationErrors {
+					field := fieldError.Field()
+					tag := fieldError.Tag()
+					errors[field] = field + " is required."
+					if tag == "required" {
+						errors[field] = field + " is required."
+					}
+				}
+			}
+			c.JSON(http.StatusUnprocessableEntity , gin.H{
+				"message": "not validate",
+				"error": errors,
+			})
+
+			return
+		}
+
+		config.DB.Save(&mahasiswa)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Success",
+			"status": "Data has been updated",
+			"data": mahasiswa,
+		})
+	}
+}
+
+func DeleteData(c *gin.Context) {
+	var mahasiswa models.TbMahasiswa
+	id := c.Param("id")
+	config.DB.First(&mahasiswa, id)
+
+	if mahasiswa.Id == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "not Found",
+			"message": "Data not found",
+		})
+		return
+	}else{
+		config.DB.Delete(&mahasiswa)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Success",
+			"status": "Data has been deleted",
+		})
+	}
+}
